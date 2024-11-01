@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Query Chatbot</title>
+<style>
+  body {
+    font-family: 'Times New Roman', Times, serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-image: linear-gradient(
+      #2eaed9 0%,
+      #6bb8cf 10%,
+      #7fc3d6 16%,
+      #9eb4c2 24%,
+      #bb9fae 40%,
+      #c49fae 48%,
+      #d39586 76%,
+      #d63176 100%
+    );
+  }
+  #chat-container {
+    border-radius: 25px;
+    padding: 20px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    width: 900px;
+    height: 600px;
+    background-color: rgb(255, 255, 255);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Hide scrollbar */
+  #chat-history {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 10px; /* Adds padding to avoid content overlapping scrollbar area */
+  }
+
+  /* Hide scrollbar for Chrome, Safari, and Edge */
+  #chat-history::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for Firefox */
+  #chat-history {
+    scrollbar-width: none;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .user-message {
+    text-align: right;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    margin-bottom: 5px;
+  }
+
+  .bot-message {
+    overflow-wrap: break-word;
+    text-align: left;
+    padding: 10px;
+    background-color: #e0f0e0;
+    border-radius: 10px;
+    margin-bottom: 5px;
+  }
+
+  form {
+    display: flex;
+  }
+
+  input {
+    flex-grow: 1;
+    margin-right: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 40px;
+  }
+
+  button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+
+  #loader {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  #chat-form {
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+  <div id="chat-container">
+    <h1><b>Query Chatbot</b></h1>
+    <div id="chat-history"></div>
+    <form id="chat-form">
+      <input type="text" id="user-input" placeholder="Ask me anything!!" required>
+      <button type="submit">Send</button>
+    </form>
+  </div>
+  <div id="loader">
+    <img src="loader.gif" width="100px" alt="Loading...">
+  </div>
+
+  <script>
+    const chatHistory = document.getElementById('chat-history');
+    const userInput = document.getElementById('user-input');
+    const form = document.getElementById('chat-form');
+
+    async function sendMessage() {
+      const userMessage = userInput.value;
+      userInput.value = '';
+      chatHistory.innerHTML += `<div class="user-message">${userMessage}</div>`;
+      chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to latest message
+      
+      try {
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userInput: userMessage }),
+        });
+
+        const data = await response.json();
+        const botMessage = data.response;
+        chatHistory.innerHTML += `<div class="bot-message">${botMessage}</div>`;
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const loader = document.getElementById('loader');
+      loader.style.display = 'block';
+      sendMessage().finally(() => {
+        loader.style.display = 'none';
+      });
+    });
+  </script>
+</body>
+</html>
